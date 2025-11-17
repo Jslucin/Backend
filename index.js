@@ -15,8 +15,29 @@ const API_KEY = process.env.API_KEY || "demo_key_change_this";
 // y escribirla temporalmente a serviceAccountKey.json para inicializar firebase-admin.
 if (!process.env.SERVICE_ACCOUNT_JSON) {
   console.error("Falta la variable de entorno SERVICE_ACCOUNT_JSON");
-  process.exit(1);
+  throw new Error("No SERVICE_ACCOUNT_JSON");
 }
+
+try {
+  let jsonContent = process.env.SERVICE_ACCOUNT_JSON.trim();
+
+  if (!jsonContent.startsWith("{")) {
+    jsonContent = Buffer.from(jsonContent, "base64").toString("utf8");
+  }
+
+  const serviceAccount = JSON.parse(jsonContent);
+
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
+
+  console.log("Firebase admin inicializado correctamente");
+
+} catch (err) {
+  console.error("Error parseando SERVICE_ACCOUNT_JSON:", err);
+  throw err;
+}
+
 
 try {
   const saJson = process.env.SERVICE_ACCOUNT_JSON;
@@ -30,7 +51,7 @@ try {
     const tmpPath = "/tmp/serviceAccountKey.json";
     fs.writeFileSync(tmpPath, jsonContent, { encoding: "utf8" });
     admin.initializeApp({
-      credential: admin.credential.cert(require(tmpPath))
+      credential: admin.credential.cert(JSON.parse(jsonContent))
     });
     console.log("Firebase admin inicializado correctamente");
   } catch (err) {
