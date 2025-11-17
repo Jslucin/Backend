@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: mototaxi-backend
+    env: node
+    buildCommand: "yarn install"
+    startCommand: "node index.js"
+    plan: free
+    envVars:
+      NODE_VERSION: 20
